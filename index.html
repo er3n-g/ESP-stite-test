@@ -5,15 +5,20 @@
 </head>
 <body>
   <h1>Control Your ESP8266</h1>
-  <button onclick="sendCommand('1')">Turn On</button>
-  <button onclick="sendCommand('0')">Turn Off</button>
+  <button onclick="updateCommand('1')">Turn On</button>
+  <button onclick="updateCommand('0')">Turn Off</button>
 
   <script>
-    function sendCommand(cmd) {
-      fetch('http://10.100.102.5/control?cmd=' + cmd)
-        .then(res => res.text())
-        .then(data => console.log(data))
-        .catch(err => console.error('Error:', err));
+    async function updateCommand(cmd) {
+      const response = await fetch('/command.json', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ command: cmd })
+      });
+      const data = await response.text();
+      console.log(data);
     }
   </script>
 </body>
