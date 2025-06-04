@@ -10,7 +10,7 @@
 
   <script>
     function sendCommand(cmd) {
-      fetch('http://YOUR-ESP-IP/control?cmd=' + cmd)
+      fetch('http://http://10.100.102.5/control?cmd=' + cmd)
         .then(res => res.text())
         .then(data => console.log(data))
         .catch(err => console.error('Error:', err));
