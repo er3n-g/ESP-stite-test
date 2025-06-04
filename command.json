@@ -1,3 +1,5 @@
-{
-  "cmd": "0"
+// api/command.js (Vercel)
+export default function handler(req, res) {
+  // This is where you can change the command dynamically
+  res.status(200).json({ cmd: "0" });
 }
