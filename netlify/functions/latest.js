@@ -1,34 +1,25 @@
-let lastSensorValue = "No data yet";
+let sensorData = { sensor: "No data yet" };
 
-exports.handler = async (event, context) => {
-  console.log("HTTP Method:", event.httpMethod);
-  console.log("Event Body:", event.body);
-
+exports.handler = async function(event) {
   if (event.httpMethod === "POST") {
     try {
-      const { sensor } = JSON.parse(event.body || "{}");
-      console.log("Received sensor:", sensor);
-
-      if (sensor) {
-        lastSensorValue = sensor;
+      const data = JSON.parse(event.body);
+      if (data.sensor) {
+        sensorData.sensor = data.sensor;
+        return {
+          statusCode: 200,
+          body: JSON.stringify({ message: "Sensor data saved." }),
+        };
       }
-
-      return {
-        statusCode: 200,
-        body: "Sensor data saved.",
-      };
-    } catch (err) {
-      console.error("Error parsing POST body:", err);
-      return {
-        statusCode: 400,
-        body: "Invalid JSON",
-      };
+      return { statusCode: 400, body: "Missing sensor value" };
+    } catch (e) {
+      return { statusCode: 400, body: "Invalid JSON" };
     }
   } else if (event.httpMethod === "GET") {
     return {
       statusCode: 200,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sensor: lastSensorValue }),
+      body: JSON.stringify(sensorData),
     };
   }
+  return { statusCode: 405, body: "Method Not Allowed" };
 };
