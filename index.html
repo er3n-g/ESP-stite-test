@@ -1,25 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ESP8266 Controller</title>
+  <title>IoT Sensor Dashboard</title>
 </head>
 <body>
-  <h1>Control Your ESP8266</h1>
-  <button onclick="updateCommand('1')">Turn On</button>
-  <button onclick="updateCommand('0')">Turn Off</button>
-
-  <script>
-    async function updateCommand(cmd) {
-      const response = await fetch('/command.json', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ command: cmd })
-      });
-      const data = await response.text();
-      console.log(data);
-    }
-  </script>
+  <h1>IoT Sensor Receiver</h1>
+  <p>Sensor data will show here soon!</p>
 </body>
 </html>
