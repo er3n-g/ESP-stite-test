@@ -4,7 +4,22 @@
   <title>IoT Sensor Dashboard</title>
 </head>
 <body>
-  <h1>IoT Sensor Receiver</h1>
-  <p>Sensor data will show here soon!</p>
+  <h1>IoT Sensor Dashboard</h1>
+  <p>Latest sensor value: <span id="sensor-value">Loading...</span></p>
+
+  <script>
+    async function fetchSensorValue() {
+      try {
+        const res = await fetch("/.netlify/functions/latest");
+        const data = await res.json();
+        document.getElementById("sensor-value").innerText = data.sensor;
+      } catch (err) {
+        console.error("Error fetching data", err);
+      }
+    }
+
+    fetchSensorValue();
+    setInterval(fetchSensorValue, 5000); // refresh every 5 seconds
+  </script>
 </body>
 </html>
