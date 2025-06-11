@@ -6,28 +6,52 @@
   <title>Water Level Display</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gradient-to-br from-gray-900 to-gray-800 text-white min-h-screen flex items-center justify-center p-6">
+<body class="bg-gradient-to-br from-gray-900 to-gray-800 text-white min-h-screen flex flex-col items-center justify-center p-6">
 
-  <!-- Sensor Box -->
   <div class="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
     <h1 class="text-2xl font-bold mb-4">💧 Water Level 💧</h1>
     <p class="text-gray-300 mb-2">Latest sensor value:</p>
     <div id="sensor-value" class="text-5xl font-mono text-blue-400 animate-pulse">Loading...</div>
     <p id="status" class="text-sm text-gray-400 mt-4">Fetching data...</p>
-
-    <!-- Buttons inside the box, below the value -->
-    <div class="flex justify-center gap-4 mt-6">
-      <button onclick="sendCommand('start')" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-xl">Start</button>
-      <button onclick="sendCommand('stop')" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-xl">Stop</button>
-    </div>
   </div>
 
-  <!-- JavaScript -->
+  <!-- Dropdown & Send Button -->
+  <div class="bg-white/10 rounded-xl p-4 mt-6 shadow-lg flex flex-col gap-4 items-center">
+    <label for="command" class="text-lg font-semibold text-gray-200">Choose Command:</label>
+    <select id="command" class="bg-gray-800 text-white p-2 rounded-xl w-64">
+      <option value="start">Start</option>
+      <option value="stop">Stop</option>
+      <option value="reset">Reset</option>
+      <option value="calibrate">Calibrate</option>
+      <option value="debug">Debug Mode</option>
+    </select>
+    <button onclick="sendSelectedCommand()" class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-xl font-semibold">
+      Send Command
+    </button>
+  </div>
+
   <script>
+    // Send the selected command
+    async function sendSelectedCommand() {
+      const cmd = document.getElementById("command").value;
+      try {
+        const res = await fetch("/.netlify/functions/set-command", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ command: cmd })
+        });
+        const result = await res.json();
+        document.getElementById("status").textContent = `Command sent: ${result.command}`;
+      } catch (e) {
+        console.error("Command failed", e);
+        document.getElementById("status").textContent = `Command failed.`;
+      }
+    }
+
+    // Fetch the sensor value
     const sensorValue = document.getElementById("sensor-value");
     const statusText = document.getElementById("status");
 
-    // Function: fetch sensor data from Netlify Function
     async function fetchSensorValue() {
       try {
         const res = await fetch("/.netlify/functions/latest");
@@ -42,23 +66,6 @@
       }
     }
 
-    // Function: send command (start/stop) to Netlify Function
-    async function sendCommand(cmd) {
-      try {
-        const res = await fetch("/.netlify/functions/set-command", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ command: cmd })
-        });
-        const result = await res.json();
-        statusText.textContent = `Command sent: ${result.command}`;
-      } catch (e) {
-        console.error("Command failed", e);
-        statusText.textContent = "Failed to send command.";
-      }
-    }
-
-    // Refresh sensor value every 5 seconds
     fetchSensorValue();
     setInterval(fetchSensorValue, 5000);
   </script>
