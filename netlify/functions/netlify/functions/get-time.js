@@ -1,16 +1,14 @@
-exports.handler = async function (event, context) {
-  const now = new Date(); // current UTC time
-
-  // Format as HH:MM string
-  const hh = String(now.getUTCHours()).padStart(2, '0');
-  const mm = String(now.getUTCMinutes()).padStart(2, '0');
-  const formatted = `${hh}:${mm}`;
-
+exports.handler = async () => {
+  const now = new Date();
+  const hours = now.getHours().toString().padStart(2, '0');
+  const minutes = now.getMinutes().toString().padStart(2, '0');
+  const time = `${hours}:${minutes}`;
+  
   return {
     statusCode: 200,
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ time: formatted }),
+    body: JSON.stringify({ time })
   };
 };
