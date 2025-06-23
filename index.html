@@ -40,68 +40,71 @@
   </div>
 
   <script>
-    const tankHeight = 10; // cm, set to your real tank height
+    <script>
+  const distanceEmpty = 7.5;
+  const distanceFull = 2;
+  const tankHeight = 10;
 
-    const sensorValue = document.getElementById("sensor-value");
-    const waterHeightDisplay = document.getElementById("water-height");
-    const percentFullDisplay = document.getElementById("percent-full");
-    const progressBar = document.getElementById("progress-bar");
-    const statusText = document.getElementById("status");
+  const sensorValue = document.getElementById("sensor-value");
+  const waterHeightDisplay = document.getElementById("water-height");
+  const percentFullDisplay = document.getElementById("percent-full");
+  const progressBar = document.getElementById("progress-bar");
+  const statusText = document.getElementById("status");
 
-    // Send the selected command
-    async function sendSelectedCommand() {
-      const cmd = document.getElementById("command").value;
-      try {
-        const res = await fetch("/.netlify/functions/set-command", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ command: cmd })
-        });
-        const result = await res.json();
-        statusText.textContent = `Command sent: ${result.command}`;
-      } catch (e) {
-        console.error("Command failed", e);
-        statusText.textContent = `Command failed.`;
-      }
+  async function sendSelectedCommand() {
+    const cmd = document.getElementById("command").value;
+    try {
+      const res = await fetch("/.netlify/functions/set-command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ command: cmd })
+      });
+      const result = await res.json();
+      statusText.textContent = `Command sent: ${result.command}`;
+    } catch (e) {
+      console.error("Command failed", e);
+      statusText.textContent = `Command failed.`;
     }
+  }
 
-    // Fetch the sensor value
-    async function fetchSensorValue() {
-      try {
-        const res = await fetch("/.netlify/functions/latest");
-        const data = await res.json();
-        const distance = parseFloat(data.sensor);
+  async function fetchSensorValue() {
+    try {
+      const res = await fetch("/.netlify/functions/latest");
+      const data = await res.json();
+      const distance = parseFloat(data.sensor);
 
-        if (isNaN(distance)) {
-          throw new Error("Invalid sensor data");
-        }
+      if (isNaN(distance)) throw new Error("Invalid sensor data");
 
-        sensorValue.textContent = distance.toFixed(1);
-        const waterHeight = tankHeight - distance;
-        const percentFull = Math.max(0, Math.min(100, (waterHeight / tankHeight) * 100));
+      sensorValue.textContent = distance.toFixed(1);
 
-        waterHeightDisplay.textContent = waterHeight.toFixed(1);
-        percentFullDisplay.textContent = percentFull.toFixed(0);
+      const clampedDistance = Math.min(Math.max(distance, distanceFull), distanceEmpty);
+      const percentFull = ((distanceEmpty - clampedDistance) / (distanceEmpty - distanceFull)) * 100;
+      const waterHeight = (percentFull / 100) * tankHeight;
 
-        progressBar.style.width = percentFull + "%";
-        progressBar.textContent = percentFull.toFixed(0) + "%";
+      waterHeightDisplay.textContent = waterHeight.toFixed(1);
+      percentFullDisplay.textContent = percentFull.toFixed(0);
 
-        sensorValue.classList.remove("animate-pulse");
-        statusText.textContent = "Last updated: " + new Date().toLocaleTimeString();
+      progressBar.style.width = percentFull + "%";
+      progressBar.textContent = percentFull.toFixed(0) + "%";
 
-      } catch (err) {
-        console.error("Error fetching data", err);
-        sensorValue.textContent = "N/A";
-        waterHeightDisplay.textContent = "--";
-        percentFullDisplay.textContent = "--";
-        progressBar.style.width = "0%";
-        progressBar.textContent = "0%";
-        statusText.textContent = "Failed to fetch sensor data.";
-      }
+      sensorValue.classList.remove("animate-pulse");
+      statusText.textContent = "Last updated: " + new Date().toLocaleTimeString();
+
+    } catch (err) {
+      console.error("Error fetching data", err);
+      sensorValue.textContent = "N/A";
+      waterHeightDisplay.textContent = "--";
+      percentFullDisplay.textContent = "--";
+      progressBar.style.width = "0%";
+      progressBar.textContent = "0%";
+      statusText.textContent = "Failed to fetch sensor data.";
     }
+  }
 
-    fetchSensorValue();
-    setInterval(fetchSensorValue, 5000);
+  fetchSensorValue();
+  setInterval(fetchSensorValue, 5000);
+</script>
+
   </script>
 
 </body>
