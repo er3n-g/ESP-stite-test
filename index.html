@@ -9,9 +9,18 @@
 <body class="bg-gradient-to-br from-gray-900 to-gray-800 text-white min-h-screen flex flex-col items-center justify-center p-6">
 
   <div class="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
-    <h1 class="text-2xl font-bold mb-4">💧 Water Level 💧</h1>
-    <p class="text-gray-300 mb-2">Latest sensor value:</p>
-    <div id="sensor-value" class="text-5xl font-mono text-blue-400 animate-pulse">Loading...</div>
+    <h1 class="text-2xl font-bold mb-4">💧 Water Tank Status 💧</h1>
+    <p class="text-gray-300 mb-2">Distance from sensor (cm):</p>
+    <div id="sensor-value" class="text-5xl font-mono text-blue-400 animate-pulse mb-4">Loading...</div>
+
+    <div class="text-lg text-gray-300 mb-2">Water Height: <span id="water-height">--</span> cm</div>
+    <div class="text-lg text-gray-300 mb-4">Tank Full: <span id="percent-full">--</span>%</div>
+
+    <!-- Progress Bar -->
+    <div class="w-full bg-gray-700 h-6 rounded-xl overflow-hidden">
+      <div id="progress-bar" class="bg-blue-500 h-full text-center text-xs text-white flex items-center justify-center" style="width: 0%;">0%</div>
+    </div>
+
     <p id="status" class="text-sm text-gray-400 mt-4">Fetching data...</p>
   </div>
 
@@ -31,6 +40,14 @@
   </div>
 
   <script>
+    const tankHeight = 100; // cm, set to your real tank height
+
+    const sensorValue = document.getElementById("sensor-value");
+    const waterHeightDisplay = document.getElementById("water-height");
+    const percentFullDisplay = document.getElementById("percent-full");
+    const progressBar = document.getElementById("progress-bar");
+    const statusText = document.getElementById("status");
+
     // Send the selected command
     async function sendSelectedCommand() {
       const cmd = document.getElementById("command").value;
@@ -41,28 +58,45 @@
           body: JSON.stringify({ command: cmd })
         });
         const result = await res.json();
-        document.getElementById("status").textContent = `Command sent: ${result.command}`;
+        statusText.textContent = `Command sent: ${result.command}`;
       } catch (e) {
         console.error("Command failed", e);
-        document.getElementById("status").textContent = `Command failed.`;
+        statusText.textContent = `Command failed.`;
       }
     }
 
     // Fetch the sensor value
-    const sensorValue = document.getElementById("sensor-value");
-    const statusText = document.getElementById("status");
-
     async function fetchSensorValue() {
       try {
         const res = await fetch("/.netlify/functions/latest");
         const data = await res.json();
-        sensorValue.textContent = data.sensor;
-        statusText.textContent = "Last updated: " + new Date().toLocaleTimeString();
+        const distance = parseFloat(data.sensor);
+
+        if (isNaN(distance)) {
+          throw new Error("Invalid sensor data");
+        }
+
+        sensorValue.textContent = distance.toFixed(1);
+        const waterHeight = tankHeight - distance;
+        const percentFull = Math.max(0, Math.min(100, (waterHeight / tankHeight) * 100));
+
+        waterHeightDisplay.textContent = waterHeight.toFixed(1);
+        percentFullDisplay.textContent = percentFull.toFixed(0);
+
+        progressBar.style.width = percentFull + "%";
+        progressBar.textContent = percentFull.toFixed(0) + "%";
+
         sensorValue.classList.remove("animate-pulse");
+        statusText.textContent = "Last updated: " + new Date().toLocaleTimeString();
+
       } catch (err) {
-        sensorValue.textContent = "N/A";
-        statusText.textContent = "Failed to fetch sensor data.";
         console.error("Error fetching data", err);
+        sensorValue.textContent = "N/A";
+        waterHeightDisplay.textContent = "--";
+        percentFullDisplay.textContent = "--";
+        progressBar.style.width = "0%";
+        progressBar.textContent = "0%";
+        statusText.textContent = "Failed to fetch sensor data.";
       }
     }
 
