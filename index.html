@@ -10,18 +10,13 @@
 
   <div class="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
     <h1 class="text-2xl font-bold mb-4">💧 Water Tank Status 💧</h1>
-    <p class="text-gray-300 mb-2">Distance from sensor (cm):</p>
-    <div id="sensor-value" class="text-5xl font-mono text-blue-400 animate-pulse mb-4">Loading...</div>
-
-    <div class="text-lg text-gray-300 mb-2">Water Height: <span id="water-height">--</span> cm</div>
-    <div class="text-lg text-gray-300 mb-4">Tank Full: <span id="percent-full">--</span>%</div>
 
     <!-- Progress Bar -->
-    <div class="w-full bg-gray-700 h-6 rounded-xl overflow-hidden">
+    <div class="w-full bg-gray-700 h-6 rounded-xl overflow-hidden mb-4">
       <div id="progress-bar" class="bg-blue-500 h-full text-center text-xs text-white flex items-center justify-center" style="width: 0%;">0%</div>
     </div>
 
-    <p id="status" class="text-sm text-gray-400 mt-4">Fetching data...</p>
+    <p id="status" class="text-sm text-gray-400 mt-2">Fetching data...</p>
   </div>
 
   <!-- Dropdown & Send Button -->
@@ -42,11 +37,7 @@
   <script>
     const distanceEmpty = 7.5;
     const distanceFull = 2;
-    const tankHeight = 10;
 
-    const sensorValue = document.getElementById("sensor-value");
-    const waterHeightDisplay = document.getElementById("water-height");
-    const percentFullDisplay = document.getElementById("percent-full");
     const progressBar = document.getElementById("progress-bar");
     const statusText = document.getElementById("status");
 
@@ -74,26 +65,16 @@
 
         if (isNaN(distance)) throw new Error("Invalid sensor data");
 
-        sensorValue.textContent = distance.toFixed(1);
-
         const clampedDistance = Math.min(Math.max(distance, distanceFull), distanceEmpty);
         const percentFull = ((distanceEmpty - clampedDistance) / (distanceEmpty - distanceFull)) * 100;
-        const waterHeight = (percentFull / 100) * tankHeight;
-
-        waterHeightDisplay.textContent = waterHeight.toFixed(1);
-        percentFullDisplay.textContent = percentFull.toFixed(0);
 
         progressBar.style.width = percentFull + "%";
         progressBar.textContent = percentFull.toFixed(0) + "%";
 
-        sensorValue.classList.remove("animate-pulse");
         statusText.textContent = "Last updated: " + new Date().toLocaleTimeString();
 
       } catch (err) {
         console.error("Error fetching data", err);
-        sensorValue.textContent = "N/A";
-        waterHeightDisplay.textContent = "--";
-        percentFullDisplay.textContent = "--";
         progressBar.style.width = "0%";
         progressBar.textContent = "0%";
         statusText.textContent = "Failed to fetch sensor data.";
