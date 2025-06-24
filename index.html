@@ -11,9 +11,16 @@
   <div class="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
     <h1 class="text-2xl font-bold mb-4">💧 Water Tank Status 💧</h1>
 
-    <!-- Progress Bar -->
+    <!-- Tank 1 Progress Bar -->
+    <p class="font-semibold mb-1">Tank 1</p>
     <div class="w-full bg-gray-700 h-6 rounded-xl overflow-hidden mb-4">
-      <div id="progress-bar" class="bg-blue-500 h-full text-center text-xs text-white flex items-center justify-center" style="width: 0%;">0%</div>
+      <div id="progress-bar1" class="bg-blue-500 h-full text-center text-xs text-white flex items-center justify-center" style="width: 0%;">0%</div>
+    </div>
+
+    <!-- Tank 2 Progress Bar -->
+    <p class="font-semibold mb-1">Tank 2</p>
+    <div class="w-full bg-gray-700 h-6 rounded-xl overflow-hidden mb-4">
+      <div id="progress-bar2" class="bg-green-500 h-full text-center text-xs text-white flex items-center justify-center" style="width: 0%;">0%</div>
     </div>
 
     <p id="status" class="text-sm text-gray-400 mt-2">Fetching data...</p>
@@ -38,7 +45,8 @@
     const distanceEmpty = 7.5;
     const distanceFull = 2;
 
-    const progressBar = document.getElementById("progress-bar");
+    const progressBar1 = document.getElementById("progress-bar1");
+    const progressBar2 = document.getElementById("progress-bar2");
     const statusText = document.getElementById("status");
 
     async function sendSelectedCommand() {
@@ -57,26 +65,38 @@
       }
     }
 
+    function calculatePercentage(distance) {
+      const clampedDistance = Math.min(Math.max(distance, distanceFull), distanceEmpty);
+      return ((distanceEmpty - clampedDistance) / (distanceEmpty - distanceFull)) * 100;
+    }
+
     async function fetchSensorValue() {
       try {
         const res = await fetch("/.netlify/functions/latest");
         const data = await res.json();
-        const distance = parseFloat(data.sensor);
 
-        if (isNaN(distance)) throw new Error("Invalid sensor data");
+        const dist1 = parseFloat(data.tank1);
+        const dist2 = parseFloat(data.tank2);
 
-        const clampedDistance = Math.min(Math.max(distance, distanceFull), distanceEmpty);
-        const percentFull = ((distanceEmpty - clampedDistance) / (distanceEmpty - distanceFull)) * 100;
+        if (isNaN(dist1) || isNaN(dist2)) throw new Error("Invalid sensor data");
 
-        progressBar.style.width = percentFull + "%";
-        progressBar.textContent = percentFull.toFixed(0) + "%";
+        const percent1 = calculatePercentage(dist1);
+        const percent2 = calculatePercentage(dist2);
+
+        progressBar1.style.width = percent1 + "%";
+        progressBar1.textContent = percent1.toFixed(0) + "%";
+
+        progressBar2.style.width = percent2 + "%";
+        progressBar2.textContent = percent2.toFixed(0) + "%";
 
         statusText.textContent = "Last updated: " + new Date().toLocaleTimeString();
 
       } catch (err) {
         console.error("Error fetching data", err);
-        progressBar.style.width = "0%";
-        progressBar.textContent = "0%";
+        progressBar1.style.width = "0%";
+        progressBar1.textContent = "0%";
+        progressBar2.style.width = "0%";
+        progressBar2.textContent = "0%";
         statusText.textContent = "Failed to fetch sensor data.";
       }
     }
